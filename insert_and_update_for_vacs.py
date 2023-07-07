@@ -91,10 +91,10 @@ def insert_into_table(port, host, user, database, password):
         emp_vacs = get_vacs(emp_id)['items']
         for vacancy in emp_vacs:
             vacancies.append(create_vacancy(vacancy))
-
+    cur.execute("TRUNCATE TABLE vacancies")
     for vacancy in vacancies:
         try:
-            cur.execute("TRUNCATE TABLE vacancies")
+
             cur.execute('INSERT INTO '
                     'vacancies(vacancy_id, vacancy_name, url, salary_from, salary_to, city,'
                     'address, employer_name, employer_id, employment, experience, responsibility)'

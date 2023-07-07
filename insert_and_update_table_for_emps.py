@@ -46,10 +46,10 @@ def insert_into_table(port, host, user, database, password):
         employer = get_employer(emp_id)
         output_employer = create_employer(employer)
         employers.append(output_employer)
-
+    cur.execute("TRUNCATE TABLE employers")
     for employer in employers:
         try:
-            cur.execute("TRUNCATE TABLE employers")
+
             cur.execute("INSERT INTO employers(employer_id, employer_name,"
                         "open_vacancies) VALUES (%s, %s, %s)",
                         [employer["id"], employer["name"], employer["vacancies"]])
