@@ -20,6 +20,10 @@ def get_vacs(employer_id):
     a = requests.get("https://api.hh.ru/vacancies", params).json()
     return a
 
+
+def get_employer(employer_id):
+    a = requests.get(f"https://api.hh.ru/employers/{employer_id}").json()
+    return a
 #
 # for id in possible_ids.values():
 #     pprint(get_vacs(id))

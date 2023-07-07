@@ -2,8 +2,7 @@ import psycopg2
 from get_vacs import get_vacs
 from get_vacs import possible_ids
 from psycopg2 import errors
-import requests
-import time
+
 
 def clean_dict(dict):
     """Метод для промежуточной очистки ответов апи от значений Null для возможности работы
@@ -46,15 +45,44 @@ def create_vacancy(vac_api_type):
     return my_vac
 
 
-def insert_into_table():
+def create_table(port, host, user, database, password):
+    conn = psycopg2.connect(
+        port=port,
+        host=host,
+        database=database,
+        user=user,
+        password=password
+    )
+    cur = conn.cursor()
+    cur.execute("CREATE TABLE vacancies "
+                "( "
+                "vacancy_id int PRIMARY KEY, "
+                "vacancy_name varchar, "
+                "url varchar, "
+                "salary_from int, "
+                "salary_to int, "
+                "city varchar, "
+                "address varchar, "
+                "employer_name varchar, "
+                "employer_id int, "
+                "employment varchar, "
+                "experience varchar, "
+                "responsibility text "
+                ") ")
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
+def insert_into_table(port, host, user, database, password):
     """Метод для получения вакансий от выбранных работодателей через апи и добавления
     их в таблицу vacancies, пропуская те, которые в ней уже есть"""
     conn = psycopg2.connect(
-        port="8080",
-        host="localhost",
-        database="vacancies",
-        user="postgres",
-        password="RosGus80"
+        port=port,
+        host=host,
+        database=database,
+        user=user,
+        password=password
     )
     vacancies = []
     cur = conn.cursor()
@@ -66,6 +94,7 @@ def insert_into_table():
 
     for vacancy in vacancies:
         try:
+            cur.execute("TRUNCATE TABLE vacancies")
             cur.execute('INSERT INTO '
                     'vacancies(vacancy_id, vacancy_name, url, salary_from, salary_to, city,'
                     'address, employer_name, employer_id, employment, experience, responsibility)'
@@ -80,33 +109,5 @@ def insert_into_table():
     conn.commit()
     cur.close()
     conn.close()
-
-
-def update_table():
-    """Метод для обновления таблицы по фильтру актуальности вакансий: метод получит все
-    данные из таблицы vacancies, проверит каждую вакансию через апи и удалит те, которые были
-    закрыты со времени прошлого обновления. Рекомендую обращаться к методу каждый раз
-    при начале работы с базой данных, однако, из-за ограничения на количество запросов за
-    промежуток времени, между проверкой двух вакансий приходится делать паузу в полсекунды,
-    так что работа метода становится мучительно продолжительной пропорционально увеличению базы."""
-    conn = psycopg2.connect(
-        port="8080",
-        host="localhost",
-        database="vacancies",
-        user="postgres",
-        password="RosGus80"
-    )
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM vacancies")
-    data = cur.fetchall()
-    for vacancy in data:
-        api_answer = requests.get(f"https://api.hh.ru/vacancies/{vacancy[0]}").json()
-        if not api_answer["type"]["id"] == "open":
-            cur.execute(f"DELETE FROM vacancies WHERE vacancies.vacancy_id = {vacancy[0]}")
-        time.sleep(0.5)
-    conn.commit()
-    cur.close()
-    conn.close()
-
 
 
